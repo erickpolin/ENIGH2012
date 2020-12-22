@@ -1,7 +1,5 @@
 ###################  Creación de la base 2012 #####################
 
-
-
 #ENIGH 2012
 library(foreign)
 library(survey)
@@ -17,13 +15,12 @@ Conc<-read.dbf("NCV_concentrado_2012_concil_2010.dbf",as.is = T)
 #Keeping Variables of interest
 
 Conc<-Conc%>%
-  select(FOLIOVIV,FOLIOHOG,ING_COR,INGTRAB,TRABAJO,NEGOCIO,OTROS_TRAB,RENTAS,
-         UTILIDAD,ARRENDA,TRANSFER,JUBILACION,BECAS,DONATIVOS,REMESAS,BENE_GOB,
-         TRANSF_HOG,TRANS_INST,ESTIM_ALQU,OTROS_ING,FACTOR_HOG,UPM,EST_DIS)
+  select("folioviv"=FOLIOVIV,"foliohog"=FOLIOHOG, "tot_integ"=TOT_INTEG,"ing_cor"=ING_COR,"ingtrab"=INGTRAB,
+         "trabajo"=TRABAJO,"negocio"=NEGOCIO,"otros_trab"=OTROS_TRAB,"rentas"=RENTAS,"utilidad"=UTILIDAD,
+         "arrenda"= ARRENDA,"transfer"=TRANSFER,"jubilacion"=JUBILACION,"becas"=BECAS,"donativos"=DONATIVOS,
+         "remesas"= REMESAS,"bene_gob"=BENE_GOB,"transf_hog"=TRANSF_HOG,"trans_inst"=TRANS_INST,
+         "estim_alqu"=ESTIM_ALQU,"otros_ing"=OTROS_ING,"factor"=FACTOR_HOG,"upm"=UPM,"est_dis"=EST_DIS)
 
-#Conc <- Conc [ c("folioviv", "foliohog","tot_integ", "ing_cor", "ingtrab", "trabajo", "negocio", "otros_trab", "rentas", "utilidad",
- #                "arrenda", "transfer", "jubilacion", "becas", "donativos", "remesas", "bene_gob", "transf_hog", "trans_inst",
-  #               "estim_alqu", "otros_ing","factor","upm","est_dis")]
 
 ################ DEfinir hogares in?genas#################
 Poblacion<-read.dbf("ncv_poblacion_2012_concil_2010_dbf.dbf",as.is = T)
@@ -31,7 +28,7 @@ Poblacion<-read.dbf("ncv_poblacion_2012_concil_2010_dbf.dbf",as.is = T)
 Poblacion<-Poblacion%>%
   select(folioviv,foliohog,numren,parentesco,hablaind,comprenind,etnia)
 
-#Poblacion <- Poblacion [ c("folioviv", "foliohog", "numren", "parentesco","hablaind","comprenind","etnia")]
+
 
 #El concepto de hogar ind?gena se ha definido como aquel donde el jefe(a), 
 #su c?nyuge o alguno de los ascendientes (madre o padre, madrastra o padrastro, abuelo(a),
@@ -65,28 +62,28 @@ entidad<-c("01","02","03","04","05","06","07","08","09",
            "10","11","12","13","14","15","16","17","18","19","20",
            "21","22","23","24","25","26","27","28","29","30","31","32")
 
-Deflactores<-c(99.72681114, 100.7448332, 100.577354, 100.0405632, 100.3536931, 99.47579091,
-               99.97322672,100.1204269,99.6271963,99.47590234,99.55847446,99.59978154,
-               99.64694471,99.75771694,99.55737165,99.60461493,99.6391153,99.25764758,99.97057884,
-               99.78754729,99.9375229,99.32058978,100.4795674,99.81711761,102.0798977,101.0968882,
-               100.0880301,100.3167204,99.76430073,99.83092717,99.7534199,99.6364563)
+Deflactores<-c(79.83511852,78.76790086,81.34614419,77.71979475,79.43163136,79.45078962,78.07433841,
+               80.58111794,77.34617233,77.74269473,77.78287166,77.83611741,76.66184735,77.90465055,
+               77.97328156,78.82694321,80.55795457,79.13869647,81.50247101,80.15418451,79.40416714,
+               76.27483257,81.4477534,79.2973544,83.32204201,80.5745756,79.6903822,81.13511586,78.92802579,
+               79.17115265,79.1511371,79.0081984)
 
 entidades<-c("Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
              "Colima","Chiapas","Chihuahua","Ciudad de México","Durango","Guanajuato","Guerrero","Hidalgo",
              "Jalisco","México","Michoacán de Ocampo","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla",
              "Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatán","Zacatecas")
 
-Deflactores2008<-data.frame(entidad,entidades,Deflactores)
+Deflactores2012<-data.frame(entidad,entidades,Deflactores)
 
-Conc<-merge(Conc,Deflactores2008,by=c("entidad"))
+Conc<-merge(Conc,Deflactores2012,by=c("entidad"))
 
-Conc <- Conc%>%
-  mutate(ing_cor=(ing_cor/Deflactores)*100, ingtrab=(ingtrab/Deflactores)*100, trabajo=(trabajo/Deflactores)*100, 
-         negocio=(negocio/Deflactores)*100, otros_trab=(otros_trab/Deflactores)*100, rentas=(rentas/Deflactores)*100,
-         utilidad=(utilidad/Deflactores)*100,arrenda=(arrenda/Deflactores)*100, transfer=(transfer/Deflactores)*100,
-         jubilacion=(jubilacion/Deflactores)*100, becas=(becas/Deflactores)*100, donativos=(donativos/Deflactores)*100,
-         remesas=(remesas/Deflactores)*100, bene_gob=(bene_gob/Deflactores)*100, transf_hog=(transf_hog/Deflactores)*100, 
-         trans_inst=(trans_inst/Deflactores)*100,estim_alqu=(estim_alqu/Deflactores)*100, otros_ing=(otros_ing/Deflactores)*100)
+#Conc <- Conc%>%
+ # mutate(ing_cor=(ing_cor/Deflactores)*100, ingtrab=(ingtrab/Deflactores)*100, trabajo=(trabajo/Deflactores)*100, 
+  #       negocio=(negocio/Deflactores)*100, otros_trab=(otros_trab/Deflactores)*100, rentas=(rentas/Deflactores)*100,
+   #      utilidad=(utilidad/Deflactores)*100,arrenda=(arrenda/Deflactores)*100, transfer=(transfer/Deflactores)*100,
+    #     jubilacion=(jubilacion/Deflactores)*100, becas=(becas/Deflactores)*100, donativos=(donativos/Deflactores)*100,
+     #    remesas=(remesas/Deflactores)*100, bene_gob=(bene_gob/Deflactores)*100, transf_hog=(transf_hog/Deflactores)*100, 
+      #   trans_inst=(trans_inst/Deflactores)*100,estim_alqu=(estim_alqu/Deflactores)*100, otros_ing=(otros_ing/Deflactores)*100)
 
 ######################################################
 
@@ -156,5 +153,5 @@ for(i in 1:9)
 Conc[Conc$DECIL%in%"0",]$DECIL<-10
 
 
-write.dbf(Conc,file="Conc.dbf")
+write.dbf(Conc,file="Conc_2012.dbf")
 
