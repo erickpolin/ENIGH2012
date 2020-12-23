@@ -645,7 +645,9 @@ prueba<-c_DECIL_ES%>%
 
 all.equal(prueba$`ING COR2012`,prueba$prueba)
 
+Consumo_por_DECIL <- svyby(~GASTO,denominator=~Nhog,by=~DECIL,mydesign,svyratio)
 
+write.dbf(Consumo_por_DECIL,file = "Nacional Consumo  por DECIL 2012.dbf")
 write.dbf(c_DECIL_ES,file = "Nacional por fuente por DECIL estimaciones 2012.dbf")
 write.dbf(c_DECIL_SE,file = "Nacional por fuente por DECIL errores standard 2012.dbf")
 write.dbf(c_DECIL_CV,file = "Nacional por fuente por DECIL CV 2012.dbf")
