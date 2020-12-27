@@ -186,7 +186,7 @@ write.dbf(Conc,file="Conc_2012.dbf")
 
 rm(list = ls())
 
-################## Creadicón de las tablas d eingreso por fuente #############
+################## Creadicón de las tablas de ingreso por fuente #############
 library(foreign)
 library(survey)
 library(doBy)
