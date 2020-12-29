@@ -186,6 +186,38 @@ write.dbf(Conc,file="Conc_2012.dbf")
 
 rm(list = ls())
 
+
+
+# TOTAL HOGARES
+x<-tapply(Conc$factor,Conc$Nhog,sum)
+# DECILES
+y<-tapply(Conc$factor,Conc$DECIL,sum)
+# se calcula el promedio (ingreso entre los hogares) tanto para el total como para cada uno de los deciles
+ing_cormed_t<-tapply(Conc$factor*Conc$ing_cor,Conc$Nhog,sum)/x
+ing_cormed_d<-tapply(Conc$factor*Conc$ing_cor,Conc$DECIL,sum)/y
+########################## C U A D R O S #################################
+# guardamos los resultados en un data frame
+prom_rub <- data.frame (c(ing_cormed_t,ing_cormed_d))
+# agregamos el nombre a las filas
+Numdec<-c("Total", "I", "II", "III","IV", "V", "VI", "VII", "VIII", "IX","X")
+row.names(prom_rub)<-Numdec
+
+# GINI Nacional (sobre los 10 deciles) por hogar usando el promedio del ingreso corriente (ingcor)
+deciles_hog_ingcor <- data.frame(hogaresxdecil=c(x,x,x,x,x,x,x,x,x,x),
+                                 ingreso=c(ing_cormed_d[1],ing_cormed_d[2],ing_cormed_d[3],
+                                           ing_cormed_d[4],ing_cormed_d[5],ing_cormed_d[6],
+                                           ing_cormed_d[7],ing_cormed_d[8],ing_cormed_d[9],
+                                           ing_cormed_d[10]))
+# se efectua la función Gini y se guarda en nuestro vector a.
+a<-gini(deciles_hog_ingcor$ingreso,weights=deciles_hog_ingcor$hogares)
+# se renombran las variables (columnas)
+names(prom_rub)=c("INGRESO CORRIENTE")
+names(a)="GINI"
+##### Mostramos el resultado en pantalla #####
+round(prom_rub)
+round(a,3)
+
+
 ################## Creadicón de las tablas de ingreso por fuente #############
 library(foreign)
 library(survey)
