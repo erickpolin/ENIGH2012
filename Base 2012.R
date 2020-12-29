@@ -195,7 +195,7 @@ y<-tapply(Conc$factor,Conc$DECIL,sum)
 # se calcula el promedio (ingreso entre los hogares) tanto para el total como para cada uno de los deciles
 ing_cormed_t<-tapply(Conc$factor*Conc$ing_cor,Conc$Nhog,sum)/x
 ing_cormed_d<-tapply(Conc$factor*Conc$ing_cor,Conc$DECIL,sum)/y
-########################## C U A D R O S #################################
+########################## C U A D R O S 
 # guardamos los resultados en un data frame
 prom_rub <- data.frame (c(ing_cormed_t,ing_cormed_d))
 # agregamos el nombre a las filas
@@ -213,7 +213,7 @@ a<-gini(deciles_hog_ingcor$ingreso,weights=deciles_hog_ingcor$hogares)
 # se renombran las variables (columnas)
 names(prom_rub)=c("INGRESO CORRIENTE")
 names(a)="GINI"
-##### Mostramos el resultado en pantalla #####
+##### Mostramos el resultado en pantalla 
 round(prom_rub)
 round(a,3)
 
@@ -677,9 +677,24 @@ prueba<-c_DECIL_ES%>%
 
 all.equal(prueba$`ING COR2012`,prueba$prueba)
 
+
+
 Consumo_por_DECIL <- svyby(~GASTO,denominator=~Nhog,by=~DECIL,mydesign,svyratio)
 
-write.dbf(Consumo_por_DECIL,file = "Nacional Consumo  por DECIL 2012.dbf")
+Consumo_promedio <- svyratio(~GASTO,denominator=~Nhog,mydesign) 
+
+Consumo_por_DECIL <- Consumo_por_DECIL[[2]] 
+Consumo_promedio <- Consumo_promedio[[1]]
+
+Consumo<-data.frame(c(Consumo_promedio,Consumo_por_DECIL))
+
+DECILES<-c("PROMEDIO", "I", "II", "III","IV", "V", "VI", "VII", "VIII", "IX","X")
+
+row.names(Consumo)<-DECILES
+
+
+
+write.dbf(Consumo,file = "Nacional Consumo  por DECIL 2012.dbf")
 write.dbf(c_DECIL_ES,file = "Nacional por fuente por DECIL estimaciones 2012.dbf")
 write.dbf(c_DECIL_SE,file = "Nacional por fuente por DECIL errores standard 2012.dbf")
 write.dbf(c_DECIL_CV,file = "Nacional por fuente por DECIL CV 2012.dbf")
