@@ -710,8 +710,8 @@ row.names(Consumo_SE)<-DECILES
 
 
 
-write.dbf(Consumo,file = "Nacional Consumo  por DECIL 2010.dbf")
-write.dbf(Consumo_SE,file="Nacional Consumo  por DECIL 2010 SE.dbf")
+write.dbf(Consumo,file = "Nacional Consumo  por DECIL 2012.dbf")
+write.dbf(Consumo_SE,file="Nacional Consumo  por DECIL 2012 SE.dbf")
 write.dbf(c_DECIL_ES,file = "Nacional por fuente por DECIL estimaciones 2012.dbf")
 write.dbf(c_DECIL_SE,file = "Nacional por fuente por DECIL errores standard 2012.dbf")
 write.dbf(c_DECIL_CV,file = "Nacional por fuente por DECIL CV 2012.dbf")
