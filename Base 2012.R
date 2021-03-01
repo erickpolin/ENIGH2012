@@ -9,7 +9,7 @@ library(tidyverse)
 options(survey.lonely.psu="adjust")
 
 #reading the data
-setwd("C:/Users/Erick/Dropbox/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
 Conc<-read.dbf("NCV_concentrado_2012_concil_2010.dbf",as.is = T)
 
 #Keeping Variables of interest
@@ -192,10 +192,6 @@ Conc<-Conc%>%
 
 write.dbf(Conc,file="Conc_2012.dbf")
 
-rm(list = ls())
-
-
-
 # TOTAL HOGARES
 x<-tapply(Conc$factor,Conc$Nhog,sum)
 # DECILES
@@ -224,6 +220,7 @@ names(a)="GINI"
 ##### Mostramos el resultado en pantalla 
 round(prom_rub)
 round(a,3)
+rm(list = ls())
 
 
 ################## Creadicón de las tablas de ingreso por fuente #############
@@ -235,14 +232,16 @@ library(tidyverse)
 options(survey.lonely.psu="adjust")
 
 #reading the data
-setwd("C:/Users/Erick/Dropbox/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
 Conc2012<-read.dbf("Conc_2012.dbf",as.is = T)
 
 
-names(Conc2012)<-c("ENTIDAD","FOLIOVIV","FOLIOHOG","GASTO","TOT_INTEG","INGCOR","INGTRAB","TRABAJO","NEGOCIO","OTROS_TRAB",
-                   "RENTAS","UTILIDAD","ARRENDA","TRANSFER","JUBILA","BECA","DONATIVO","REMESA","BENE_GOB",
-                   "ESP_HOG","ESP_INST","ESTI","OTROS","FACTOR","UPM","EST_DIS","HOGARINDIG","NOMBRE_ENT",
-                   "DEFLACTORES","Nhog","TAM_DECIL","MAXT","ACUMULA","ACUMULA2","DECIL","Bottom_40")
+names(Conc2012)<-c("ENTIDAD","FOLIOVIV","FOLIOHOG","GASTO","TOT_INTEG","INGCOR",
+"INGTRAB","TRABAJO","NEGOCIO","OTROS_TRAB","RENTAS","UTILIDAD","ARRENDA",
+"TRANSFER","JUBILACION","BECAS","DONATIVOS","REMESAS","BENE_GOB",
+"TRANSF_HOG","TRANS_INST","ESTIM_ALQU","OTROS_ING","FACTOR","UPM",
+"EST_DIS","TAM_LOC","SMALL","HOGARINDIG","ENTIDADES","DEFLACTORE",
+"NHOG","TAM_DEC","MAXT","ACUMULA","ACUMULA2","DECIL","BOTTOM_40")
 
 mydesign <- svydesign(id=~UPM,strata=~EST_DIS,data=Conc2012,weights=~FACTOR)
 
@@ -250,29 +249,29 @@ mydesign <- svydesign(id=~UPM,strata=~EST_DIS,data=Conc2012,weights=~FACTOR)
 # ing_ cor se define como La suma de las variables ingtrab, rentas, transfer, estim_alqu y otros_ing.
 #te sale que el ingreso trimestra promedio en Mexico es de 49,610.
 #notes? que esto no es otra cosa que el ing_cor*factor/34744819
-Ming_corTot <- svyratio(~INGCOR,denominator=~Nhog,mydesign) 
+Ming_corTot <- svyratio(~INGCOR,denominator=~NHOG,mydesign) 
 
 #ahora, vamos a hacer lo mismo por decil
 #aqu? cmabia la funci?n a svyby, en by va el decil que creamos.
 #y al final va la funci?n que queremos
-Ming_corDECIL <- svyby(~INGCOR,denominator=~Nhog,by=~DECIL,mydesign,svyratio)
+Ming_corDECIL <- svyby(~INGCOR,denominator=~NHOG,by=~DECIL,mydesign,svyratio)
 
 
 #     Trabajo
 #
 #El trabajo se divide en tres clasificaciones: subordinado, independiente y otros.
 ### ingreso del trabajo total###
-MingtrabTot <- svyratio(~INGTRAB,denominator=~Nhog,mydesign) # Total promedio
-MingtrabDECIL <- svyby(~INGTRAB,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # por decil
+MingtrabTot <- svyratio(~INGTRAB,denominator=~NHOG,mydesign) # Total promedio
+MingtrabDECIL <- svyby(~INGTRAB,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # por decil
 ###### ingreso del trabajo subordinado
-MtrabajoTot <- svyratio(~TRABAJO,denominator=~Nhog,mydesign) # Total promedio
-MtrabajoDECIL <- svyby(~TRABAJO,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # por decil
+MtrabajoTot <- svyratio(~TRABAJO,denominator=~NHOG,mydesign) # Total promedio
+MtrabajoDECIL <- svyby(~TRABAJO,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # por decil
 ###### ingreso del trabajo independiente
-MnegocioTot <- svyratio(~NEGOCIO,denominator=~Nhog,mydesign) # Total promedio
-MnegocioDECIL <- svyby(~NEGOCIO,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # por decil
+MnegocioTot <- svyratio(~NEGOCIO,denominator=~NHOG,mydesign) # Total promedio
+MnegocioDECIL <- svyby(~NEGOCIO,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # por decil
 ###### ingreso de otros trabajos
-Motros_trabTot <- svyratio(~OTROS_TRAB,denominator=~Nhog,mydesign) # Total promedio
-Motros_trabDECIL<- svyby(~OTROS_TRAB,denominator=~Nhog,by=~DECIL,mydesign,svyratio) # por decil
+Motros_trabTot <- svyratio(~OTROS_TRAB,denominator=~NHOG,mydesign) # Total promedio
+Motros_trabDECIL<- svyby(~OTROS_TRAB,denominator=~NHOG,by=~DECIL,mydesign,svyratio) # por decil
 
 
 ###################################        Rentas de la propiedad 
@@ -280,62 +279,62 @@ Motros_trabDECIL<- svyby(~OTROS_TRAB,denominator=~Nhog,by=~DECIL,mydesign,svyrat
 #la renta de la propiedad se divide en: ingresos de sociedades y arrendamientos.
 
 #ingresos totales por renta de la porpiedad
-MrentasTot <- svyratio(~RENTAS,denominator=~Nhog,mydesign) # Total promedio
-MrentasDECIL <- svyby(~RENTAS,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) #Por decil
+MrentasTot <- svyratio(~RENTAS,denominator=~NHOG,mydesign) # Total promedio
+MrentasDECIL <- svyby(~RENTAS,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) #Por decil
 ###### ingresos de sociedades
-MutilidadTot <- svyratio(~UTILIDAD,denominator=~Nhog,mydesign) # Total promedio
-MutilidadDECIL <- svyby(~UTILIDAD,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # por decil
+MutilidadTot <- svyratio(~UTILIDAD,denominator=~NHOG,mydesign) # Total promedio
+MutilidadDECIL <- svyby(~UTILIDAD,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # por decil
 ###### arrendamiento
-MarrendaTot <- svyratio(~ARRENDA,denominator=~Nhog,mydesign) # Total promedio
-MarrendaDECIL <- svyby(~ARRENDA,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # Por decil
+MarrendaTot <- svyratio(~ARRENDA,denominator=~NHOG,mydesign) # Total promedio
+MarrendaDECIL <- svyby(~ARRENDA,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # Por decil
 
 
 ###################################        Transferencias   
 
 #las transferencias totales se definen como la suma de jubilacion, becas, donativos, remesas, bene_gob, transf_hog y trans_inst.
 
-MtransferTot <- svyratio(~TRANSFER,denominator=~Nhog,mydesign) # Total promedio
-MtransferDECIL <- svyby(~TRANSFER,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # DECIL
+MtransferTot <- svyratio(~TRANSFER,denominator=~NHOG,mydesign) # Total promedio
+MtransferDECIL <- svyby(~TRANSFER,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # DECIL
 
 ###### jubilacion se define como Jubilaciones, pensiones e indemnizaciones por accidente de trabajo despido y retiro voluntario.
 #En el cuestionario solo se les pregunta si recibi? jubilaciones. As? que puede ser p?blicas o privadas.
 
-MjubilacionTot <- svyratio(~JUBILA,denominator=~Nhog,mydesign) # Total promedio
-MjubilacionDECIL <- svyby(~JUBILA,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # decil
+MjubilacionTot <- svyratio(~JUBILA,denominator=~NHOG,mydesign) # Total promedio
+MjubilacionDECIL <- svyby(~JUBILA,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # decil
 
 ###### becas que pueden ser, de nuevo, p?blicas privadas. 
-MbecasTot <- svyratio(~BECA,denominator=~Nhog,mydesign) # Total promedio
-MbecasDECIL <- svyby(~BECA,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # decil
+MbecasTot <- svyratio(~BECA,denominator=~NHOG,mydesign) # Total promedio
+MbecasDECIL <- svyby(~BECA,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # decil
 
 ###### donativos que tambi?n pueden ser p?blicos o privados.
-MdonativosTot <- svyratio(~DONATIVO,denominator=~Nhog,mydesign) # Total promedio
-MdonativosDECIL <- svyby(~DONATIVO,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # DECIL
+MdonativosTot <- svyratio(~DONATIVO,denominator=~NHOG,mydesign) # Total promedio
+MdonativosDECIL <- svyby(~DONATIVO,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # DECIL
 
 ###### remesas se definen como ingresos provenientes d eotros paises. As? de manera gen?rica.
-MremesasTot <- svyratio(~REMESA,denominator=~Nhog,mydesign) # Total promedio
-MremesasDECIL <- svyby(~REMESA,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # DECIL
+MremesasTot <- svyratio(~REMESA,denominator=~NHOG,mydesign) # Total promedio
+MremesasDECIL <- svyby(~REMESA,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # DECIL
 
 ###### bene_gob:  aqu? estna los programas p?blicos. Prospera, procampo, 65 y m?s, adultos mayores, sin hambre, empleo tempora y Otros.
-Mbene_gobTot <- svyratio(~BENE_GOB,denominator=~Nhog,mydesign) # Total promedio
-Mbene_gobDECIL <- svyby(~BENE_GOB,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # decil
+Mbene_gobTot <- svyratio(~BENE_GOB,denominator=~NHOG,mydesign) # Total promedio
+Mbene_gobDECIL <- svyby(~BENE_GOB,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # decil
 
 ###### transf_hog:  Esto es lo que transfiere otro hogar.
-Mtransf_hogTot <- svyratio(~ESP_HOG,denominator=~Nhog,mydesign) # Total promedio
-Mtransf_hogDECIL <- svyby(~ESP_HOG,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) #decil
+Mtransf_hogTot <- svyratio(~ESP_HOG,denominator=~NHOG,mydesign) # Total promedio
+Mtransf_hogDECIL <- svyby(~ESP_HOG,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) #decil
 
 ###### trans_inst: puede venir de institucione sp?blicas o privadas.
-Mtrans_instTot <- svyratio(~ESP_INST,denominator=~Nhog,mydesign) # Total promedio
-Mtrans_instDECIL <- svyby(~ESP_INST,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # DECIL
+Mtrans_instTot <- svyratio(~ESP_INST,denominator=~NHOG,mydesign) # Total promedio
+Mtrans_instDECIL <- svyby(~ESP_INST,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # DECIL
 
 
 ### estim_alqu ### Aparentemente se le pregunta al entrevistado cu?nto constar?a la renta del lugar donde vive.
-Mestim_alquTot <- svyratio(~ESTI,denominator=~Nhog,mydesign) # Total promedio
-Mestim_alquDECIL <- svyby(~ESTI,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # decil
+Mestim_alquTot <- svyratio(~ESTI,denominator=~NHOG,mydesign) # Total promedio
+Mestim_alquDECIL <- svyby(~ESTI,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # decil
 
 
 ### otros_ing ### es literalmente ?algo m?s?
-Motros_ingTot <- svyratio(~OTROS,denominator=~Nhog,mydesign) # Total promedio
-Motros_ingDECIL <- svyby(~OTROS,denominator=~Nhog,by=~DECIL ,mydesign,svyratio) # Decil
+Motros_ingTot <- svyratio(~OTROS,denominator=~NHOG,mydesign) # Total promedio
+Motros_ingDECIL <- svyby(~OTROS,denominator=~NHOG,by=~DECIL ,mydesign,svyratio) # Decil
 
 
 ######################################### Estimaciones 
@@ -685,11 +684,16 @@ prueba<-c_DECIL_ES%>%
 
 all.equal(prueba$`ING COR2012`,prueba$prueba)
 
+########## consumo ###########
 
 
-Consumo_por_DECIL <- svyby(~GASTO,denominator=~Nhog,by=~DECIL,mydesign,svyratio)
 
-Consumo_promedio <- svyratio(~GASTO,denominator=~Nhog,mydesign) 
+Consumo_por_DECIL <- svyby(~GASTO,denominator=~NHOG,by=~DECIL,mydesign,svyratio)
+
+Consumo_promedio <- svyratio(~GASTO,denominator=~NHOG,mydesign) 
+
+SE_consumo_Tot <- SE (Consumo_promedio)
+SE_consumo_DECIL <- SE (Consumo_por_DECIL)
 
 Consumo_por_DECIL <- Consumo_por_DECIL[[2]] 
 Consumo_promedio <- Consumo_promedio[[1]]
@@ -697,12 +701,17 @@ Consumo_promedio <- Consumo_promedio[[1]]
 Consumo<-data.frame(c(Consumo_promedio,Consumo_por_DECIL))
 
 DECILES<-c("PROMEDIO", "I", "II", "III","IV", "V", "VI", "VII", "VIII", "IX","X")
-
 row.names(Consumo)<-DECILES
 
+Consumo_SE<-data.frame(c(SE_consumo_Tot,SE_consumo_DECIL))
+row.names(Consumo_SE)<-DECILES
 
 
-write.dbf(Consumo,file = "Nacional Consumo  por DECIL 2012.dbf")
+
+
+
+write.dbf(Consumo,file = "Nacional Consumo  por DECIL 2010.dbf")
+write.dbf(Consumo_SE,file="Nacional Consumo  por DECIL 2010 SE.dbf")
 write.dbf(c_DECIL_ES,file = "Nacional por fuente por DECIL estimaciones 2012.dbf")
 write.dbf(c_DECIL_SE,file = "Nacional por fuente por DECIL errores standard 2012.dbf")
 write.dbf(c_DECIL_CV,file = "Nacional por fuente por DECIL CV 2012.dbf")
@@ -723,7 +732,7 @@ library(tidyverse)
 options(survey.lonely.psu="adjust")
 
 #reading the data
-setwd("C:/Users/Erick/Dropbox/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012/")
 Conc2012<-read.dbf("Conc_2012.dbf",as.is = T)
 
 
