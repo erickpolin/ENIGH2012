@@ -1227,3 +1227,1138 @@ rm(list = ls())
 
 
 
+
+################# ingreso por estado MEDIA ######################
+library(foreign)
+library(survey)
+library(doBy)
+library(reldist)
+library(tidyverse)
+options(survey.lonely.psu="adjust")
+
+#reading the data
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012")
+Conc2012<-read.dbf("Conc_2012.dbf",as.is = T)
+
+
+names(Conc2012)<-c("ENTIDAD","FOLIOVIV","FOLIOHOG","GASTO","TOT_INTEG","INGCOR","INGTRAB","TRABAJO","NEGOCIO","OTROS_TRAB",
+                   "RENTAS","UTILIDAD","ARRENDA","TRANSFER","JUBILA","BECA","DONATIVO","REMESA","BENE_GOB",
+                   "ESP_HOG","ESP_INST","ESTI","OTROS","FACTOR","UPM","EST_DIS","tam_localidad","Small","HOGARINDIG","NOMBRE_ENT",
+                   "DEFLACTORES","Nhog","TAM_DECIL","MAXT","ACUMULA","ACUMULA2","DECIL","Bottom_40")
+
+mydesign <- svydesign(id=~UPM,strata=~EST_DIS,data=Conc2012,weights=~FACTOR)
+
+#vamos por el ingreso corriente total del pa?s
+# ing_ cor se define como La suma de las variables ingtrab, rentas, transfer, estim_alqu y otros_ing.
+#te sale que el ingreso trimestra promedio en Mexico es de 49,610.
+#notes? que esto no es otra cosa que el ing_cor*factor/34744819
+Ming_corTot <- svyratio(~INGCOR,denominator=~Nhog,mydesign) 
+
+#ahora, vamos a hacer lo mismo por ENTIDAD
+#aqu? cmabia la funci?n a svyby, en by va el ENTIDAD que creamos.
+#y al final va la funci?n que queremos
+Ming_corENTIDAD <- svyby(~INGCOR,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+
+#     Trabajo
+#
+#El trabajo se divide en tres clasificaciones: subordinado, independiente y otros.
+### ingreso del trabajo total###
+MingtrabTot <- svyratio(~INGTRAB,denominator=~Nhog,mydesign) # Total promedio
+MingtrabENTIDAD <- svyby(~INGTRAB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo subordinado
+MtrabajoTot <- svyratio(~TRABAJO,denominator=~Nhog,mydesign) # Total promedio
+MtrabajoENTIDAD <- svyby(~TRABAJO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo independiente
+MnegocioTot <- svyratio(~NEGOCIO,denominator=~Nhog,mydesign) # Total promedio
+MnegocioENTIDAD <- svyby(~NEGOCIO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso de otros trabajos
+Motros_trabTot <- svyratio(~OTROS_TRAB,denominator=~Nhog,mydesign) # Total promedio
+Motros_trabENTIDAD<- svyby(~OTROS_TRAB,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio) # por ENTIDAD
+
+
+###################################        Rentas de la propiedad 
+
+#la renta de la propiedad se divide en: ingresos de sociedades y arrendamientos.
+
+#ingresos totales por renta de la porpiedad
+MrentasTot <- svyratio(~RENTAS,denominator=~Nhog,mydesign) # Total promedio
+MrentasENTIDAD <- svyby(~RENTAS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #Por ENTIDAD
+###### ingresos de sociedades
+MutilidadTot <- svyratio(~UTILIDAD,denominator=~Nhog,mydesign) # Total promedio
+MutilidadENTIDAD <- svyby(~UTILIDAD,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### arrendamiento
+MarrendaTot <- svyratio(~ARRENDA,denominator=~Nhog,mydesign) # Total promedio
+MarrendaENTIDAD <- svyby(~ARRENDA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # Por ENTIDAD
+
+
+###################################        Transferencias   
+
+#las transferencias totales se definen como la suma de jubilacion, becas, donativos, remesas, bene_gob, transf_hog y trans_inst.
+
+MtransferTot <- svyratio(~TRANSFER,denominator=~Nhog,mydesign) # Total promedio
+MtransferENTIDAD <- svyby(~TRANSFER,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### jubilacion se define como Jubilaciones, pensiones e indemnizaciones por accidente de trabajo despido y retiro voluntario.
+#En el cuestionario solo se les pregunta si recibi? jubilaciones. As? que puede ser p?blicas o privadas.
+
+MjubilacionTot <- svyratio(~JUBILA,denominator=~Nhog,mydesign) # Total promedio
+MjubilacionENTIDAD <- svyby(~JUBILA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### becas que pueden ser, de nuevo, p?blicas privadas. 
+MbecasTot <- svyratio(~BECA,denominator=~Nhog,mydesign) # Total promedio
+MbecasENTIDAD <- svyby(~BECA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### donativos que tambi?n pueden ser p?blicos o privados.
+MdonativosTot <- svyratio(~DONATIVO,denominator=~Nhog,mydesign) # Total promedio
+MdonativosENTIDAD <- svyby(~DONATIVO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### remesas se definen como ingresos provenientes d eotros paises. As? de manera gen?rica.
+MremesasTot <- svyratio(~REMESA,denominator=~Nhog,mydesign) # Total promedio
+MremesasENTIDAD <- svyby(~REMESA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### bene_gob:  aqu? estna los programas p?blicos. Prospera, procampo, 65 y m?s, adultos mayores, sin hambre, empleo tempora y Otros.
+Mbene_gobTot <- svyratio(~BENE_GOB,denominator=~Nhog,mydesign) # Total promedio
+Mbene_gobENTIDAD <- svyby(~BENE_GOB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### transf_hog:  Esto es lo que transfiere otro hogar.
+Mtransf_hogTot <- svyratio(~ESP_HOG,denominator=~Nhog,mydesign) # Total promedio
+Mtransf_hogENTIDAD <- svyby(~ESP_HOG,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #ENTIDAD
+
+###### trans_inst: puede venir de institucione sp?blicas o privadas.
+Mtrans_instTot <- svyratio(~ESP_INST,denominator=~Nhog,mydesign) # Total promedio
+Mtrans_instENTIDAD <- svyby(~ESP_INST,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### estim_alqu ### Aparentemente se le pregunta al entrevistado cu?nto constar?a la renta del lugar donde vive.
+Mestim_alquTot <- svyratio(~ESTI,denominator=~Nhog,mydesign) # Total promedio
+Mestim_alquENTIDAD <- svyby(~ESTI,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### otros_ing ### es literalmente ?algo m?s?
+Motros_ingTot <- svyratio(~OTROS,denominator=~Nhog,mydesign) # Total promedio
+Motros_ingENTIDAD <- svyby(~OTROS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+######################################### Estimaciones 
+
+ES_Ming_corTot <- Ming_corTot[[1]] #lo que estoy haciendo aqu? es extraer el valor de la primera columa que corresponde al c?lculo.
+ES_Ming_corENTIDAD <- Ming_corENTIDAD[[2]] #En el caso de las entidades, los c?lculos quedaron en la segunda columna
+
+ES_MingtrabTot <- MingtrabTot[[1]]
+ES_MingtrabENTIDAD <- MingtrabENTIDAD[[2]]
+
+ES_MtrabajoTot <- MtrabajoTot[[1]]
+ES_MtrabajoENTIDAD <- MtrabajoENTIDAD[[2]]
+
+ES_MnegocioTot <- MnegocioTot[[1]]
+ES_MnegocioENTIDAD <- MnegocioENTIDAD[[2]]
+
+ES_Motros_trabTot <- Motros_trabTot [[1]]
+ES_Motros_trabENTIDAD <- Motros_trabENTIDAD [[2]]
+
+ES_MrentasTot <- MrentasTot [[1]]
+ES_MrentasENTIDAD <- MrentasENTIDAD [[2]]
+
+ES_MutilidadTot <- MutilidadTot [[1]]
+ES_MutilidadENTIDAD <- MutilidadENTIDAD [[2]]
+
+ES_MarrendaTot <- MarrendaTot [[1]]
+ES_MarrendaENTIDAD <- MarrendaENTIDAD [[2]]
+
+ES_MtransferTot <- MtransferTot[[1]]
+ES_MtransferENTIDAD <- MtransferENTIDAD[[2]]
+
+ES_MjubilacionTot <- MjubilacionTot [[1]]
+ES_MjubilacionENTIDAD <- MjubilacionENTIDAD [[2]]
+
+ES_MbecasTot <- MbecasTot [[1]]
+ES_MbecasENTIDAD <- MbecasENTIDAD [[2]]
+
+ES_MdonativosTot <- MdonativosTot[[1]]
+ES_MdonativosENTIDAD <- MdonativosENTIDAD[[2]]
+
+ES_MremesasTot <- MremesasTot[[1]]
+ES_MremesasENTIDAD <- MremesasENTIDAD[[2]]
+
+ES_Mbene_gobTot <- Mbene_gobTot [[1]]
+ES_Mbene_gobENTIDAD <- Mbene_gobENTIDAD [[2]]
+
+ES_Mtransf_hogTot <- Mtransf_hogTot [[1]]
+ES_Mtransf_hogENTIDAD <- Mtransf_hogENTIDAD [[2]]
+
+ES_Mtrans_instTot <- Mtrans_instTot[[1]]
+ES_Mtrans_instENTIDAD <- Mtrans_instENTIDAD[[2]]
+
+ES_Mestim_alquTot <- Mestim_alquTot [[1]]
+ES_Mestim_alquENTIDAD <- Mestim_alquENTIDAD [[2]]
+
+ES_Motros_ingTot <- Motros_ingTot [[1]]
+ES_Motros_ingENTIDAD <- Motros_ingENTIDAD [[2]]
+
+########## Error Est?ndar 
+SE_Ming_corTot <- SE (Ming_corTot)
+SE_Ming_corENTIDAD <- SE (Ming_corENTIDAD)
+
+SE_MingtrabTot <- SE (MingtrabTot)
+SE_MingtrabENTIDAD <- SE (MingtrabENTIDAD)
+
+SE_MtrabajoTot <- SE (MtrabajoTot)
+SE_MtrabajoENTIDAD <- SE (MtrabajoENTIDAD)
+
+SE_MnegocioTot <- SE (MnegocioTot)
+SE_MnegocioENTIDAD <- SE (MnegocioENTIDAD)
+
+SE_Motros_trabTot <- SE (Motros_trabTot)
+SE_Motros_trabENTIDAD <- SE (Motros_trabENTIDAD)
+
+SE_MrentasTot <- SE (MrentasTot)
+SE_MrentasENTIDAD <- SE (MrentasENTIDAD)
+
+SE_MutilidadTot <- SE (MutilidadTot)
+SE_MutilidadENTIDAD <- SE (MutilidadENTIDAD)
+
+SE_MarrendaTot <- SE (MarrendaTot)
+SE_MarrendaENTIDAD <- SE (MarrendaENTIDAD)
+
+SE_MtransferTot <- SE (MtransferTot)
+SE_MtransferENTIDAD <- SE (MtransferENTIDAD)
+
+SE_MjubilacionTot <- SE (MjubilacionTot)
+SE_MjubilacionENTIDAD <- SE (MjubilacionENTIDAD)
+
+SE_MbecasTot <- SE (MbecasTot)
+SE_MbecasENTIDAD <- SE (MbecasENTIDAD)
+
+SE_MdonativosTot <- SE (MdonativosTot)
+SE_MdonativosENTIDAD <- SE (MdonativosENTIDAD)
+
+SE_MremesasTot <- SE (MremesasTot)
+SE_MremesasENTIDAD <- SE (MremesasENTIDAD)
+
+SE_Mbene_gobTot <- SE (Mbene_gobTot)
+SE_Mbene_gobENTIDAD <- SE (Mbene_gobENTIDAD)
+
+SE_Mtransf_hogTot <- SE (Mtransf_hogTot)
+SE_Mtransf_hogENTIDAD <- SE (Mtransf_hogENTIDAD)
+
+SE_Mtrans_instTot <- SE (Mtrans_instTot)
+SE_Mtrans_instENTIDAD <- SE (Mtrans_instENTIDAD)
+
+SE_Mestim_alquTot <- SE (Mestim_alquTot)
+SE_Mestim_alquENTIDAD <- SE (Mestim_alquENTIDAD)
+
+SE_Motros_ingTot <- SE (Motros_ingTot)
+SE_Motros_ingENTIDAD <- SE (Motros_ingENTIDAD)
+
+########## Coeficiente de variaci?n 
+CV_Ming_corTot <- cv(Ming_corTot)
+CV_Ming_corENTIDAD <- cv(Ming_corENTIDAD)
+
+CV_MingtrabTot <- cv(MingtrabTot)
+CV_MingtrabENTIDAD <- cv(MingtrabENTIDAD)
+
+CV_MtrabajoTot <- cv(MtrabajoTot)
+CV_MtrabajoENTIDAD <- cv(MtrabajoENTIDAD)
+
+CV_MnegocioTot <- cv(MnegocioTot)
+CV_MnegocioENTIDAD <- cv(MnegocioENTIDAD)
+
+CV_Motros_trabTot <- cv(Motros_trabTot)
+CV_Motros_trabENTIDAD <- cv(Motros_trabENTIDAD)
+
+CV_MrentasTot <- cv(MrentasTot)
+CV_MrentasENTIDAD <- cv(MrentasENTIDAD)
+
+CV_MutilidadTot <- cv(MutilidadTot)
+CV_MutilidadENTIDAD <- cv(MutilidadENTIDAD)
+
+CV_MarrendaTot <- cv(MarrendaTot)
+CV_MarrendaENTIDAD <- cv(MarrendaENTIDAD)
+
+CV_MtransferTot <- cv(MtransferTot)
+CV_MtransferENTIDAD <- cv(MtransferENTIDAD)
+
+CV_MjubilacionTot <- cv(MjubilacionTot)
+CV_MjubilacionENTIDAD <- cv(MjubilacionENTIDAD)
+
+CV_MbecasTot <- cv(MbecasTot)
+CV_MbecasENTIDAD <- cv(MbecasENTIDAD)
+
+CV_MdonativosTot <- cv(MdonativosTot)
+CV_MdonativosENTIDAD <- cv(MdonativosENTIDAD)
+
+CV_MremesasTot <- cv(MremesasTot)
+CV_MremesasENTIDAD <- cv(MremesasENTIDAD)
+
+CV_Mbene_gobTot <- cv(Mbene_gobTot)
+CV_Mbene_gobENTIDAD <- cv(Mbene_gobENTIDAD)
+
+CV_Mtransf_hogTot <- cv(Mtransf_hogTot)
+CV_Mtransf_hogENTIDAD <- cv(Mtransf_hogENTIDAD)
+
+CV_Mtrans_instTot <- cv(Mtrans_instTot)
+CV_Mtrans_instENTIDAD <- cv(Mtrans_instENTIDAD)
+
+CV_Mestim_alquTot <- cv(Mestim_alquTot)
+CV_Mestim_alquENTIDAD <- cv(Mestim_alquENTIDAD)
+
+CV_Motros_ingTot <- cv(Motros_ingTot)
+CV_Motros_ingENTIDAD <- cv(Motros_ingENTIDAD)
+
+########## Limite inferior 
+LI_Ming_corTot <- confint(Ming_corTot,level=0.90)[,1]
+LI_Ming_corENTIDAD <- confint(Ming_corENTIDAD,level=0.90)[,1]
+
+LI_MingtrabTot <- confint(MingtrabTot,level=0.90)[,1]
+LI_MingtrabENTIDAD <- confint(MingtrabENTIDAD,level=0.90)[,1]
+
+LI_MtrabajoTot <- confint(MtrabajoTot,level=0.90)[,1]
+LI_MtrabajoENTIDAD <- confint(MtrabajoENTIDAD,level=0.90)[,1]
+
+LI_MnegocioTot <- confint(MnegocioTot,level=0.90)[,1]
+LI_MnegocioENTIDAD <- confint(MnegocioENTIDAD,level=0.90)[,1]
+
+LI_Motros_trabTot <- confint(Motros_trabTot,level=0.90)[,1]
+LI_Motros_trabENTIDAD <- confint(Motros_trabENTIDAD,level=0.90)[,1]
+
+LI_MrentasTot <- confint(MrentasTot,level=0.90)[,1]
+LI_MrentasENTIDAD <- confint(MrentasENTIDAD,level=0.90)[,1]
+
+LI_MutilidadTot <- confint(MutilidadTot,level=0.90)[,1]
+LI_MutilidadENTIDAD <- confint(MutilidadENTIDAD,level=0.90)[,1]
+
+LI_MarrendaTot <- confint(MarrendaTot,level=0.90)[,1]
+LI_MarrendaENTIDAD <- confint(MarrendaENTIDAD,level=0.90)[,1]
+
+LI_MtransferTot <- confint(MtransferTot,level=0.90)[,1]
+LI_MtransferENTIDAD <- confint(MtransferENTIDAD,level=0.90)[,1]
+
+LI_MjubilacionTot <- confint(MjubilacionTot,level=0.90)[,1]
+LI_MjubilacionENTIDAD <- confint(MjubilacionENTIDAD,level=0.90)[,1]
+
+LI_MbecasTot <- confint(MbecasTot,level=0.90)[,1]
+LI_MbecasENTIDAD <- confint(MbecasENTIDAD,level=0.90)[,1]
+
+LI_MdonativosTot <- confint(MdonativosTot,level=0.90)[,1]
+LI_MdonativosENTIDAD <- confint(MdonativosENTIDAD,level=0.90)[,1]
+
+LI_MremesasTot <- confint(MremesasTot,level=0.90)[,1]
+LI_MremesasENTIDAD <- confint(MremesasENTIDAD,level=0.90)[,1]
+
+LI_Mbene_gobTot <- confint(Mbene_gobTot,level=0.90)[,1]
+LI_Mbene_gobENTIDAD <- confint(Mbene_gobENTIDAD,level=0.90)[,1]
+
+LI_Mtransf_hogTot <- confint(Mtransf_hogTot,level=0.90)[,1]
+LI_Mtransf_hogENTIDAD <- confint(Mtransf_hogENTIDAD,level=0.90)[,1]
+
+LI_Mtrans_instTot <- confint(Mtrans_instTot,level=0.90)[,1]
+LI_Mtrans_instENTIDAD <- confint(Mtrans_instENTIDAD,level=0.90)[,1]
+
+LI_Mestim_alquTot <- confint(Mestim_alquTot,level=0.90)[,1]
+LI_Mestim_alquENTIDAD <- confint(Mestim_alquENTIDAD,level=0.90)[,1
+]
+LI_Motros_ingTot <- confint(Motros_ingTot,level=0.90)[,1]
+LI_Motros_ingENTIDAD <- confint(Motros_ingENTIDAD ,level=0.90)[,1]
+
+########## Limite superior 
+LS_Ming_corTot <- confint(Ming_corTot,level=0.90)[,2]
+LS_Ming_corENTIDAD <- confint(Ming_corENTIDAD,level=0.90)[,2]
+
+LS_MingtrabTot <- confint(MingtrabTot,level=0.90)[,2]
+LS_MingtrabENTIDAD <- confint(MingtrabENTIDAD,level=0.90)[,2]
+
+LS_MtrabajoTot <- confint(MtrabajoTot,level=0.90)[,2]
+LS_MtrabajoENTIDAD <- confint(MtrabajoENTIDAD,level=0.90)[,2]
+
+LS_MnegocioTot <- confint(MnegocioTot,level=0.90)[,2]
+LS_MnegocioENTIDAD <- confint(MnegocioENTIDAD,level=0.90)[,2]
+
+LS_Motros_trabTot <- confint(Motros_trabTot,level=0.90)[,2]
+LS_Motros_trabENTIDAD <- confint(Motros_trabENTIDAD,level=0.90)[,2]
+
+LS_MrentasTot <- confint(MrentasTot,level=0.90)[,2]
+LS_MrentasENTIDAD <- confint(MrentasENTIDAD,level=0.90)[,2]
+
+LS_MutilidadTot <- confint(MutilidadTot,level=0.90)[,2]
+LS_MutilidadENTIDAD <- confint(MutilidadENTIDAD,level=0.90)[,2]
+
+LS_MarrendaTot <- confint(MarrendaTot,level=0.90)[,2]
+LS_MarrendaENTIDAD <- confint(MarrendaENTIDAD,level=0.90)[,2]
+
+LS_MtransferTot <- confint(MtransferTot,level=0.90)[,2]
+LS_MtransferENTIDAD <- confint(MtransferENTIDAD,level=0.90)[,2]
+
+LS_MjubilacionTot <- confint(MjubilacionTot,level=0.90)[,2]
+LS_MjubilacionENTIDAD <- confint(MjubilacionENTIDAD,level=0.90)[,2]
+
+LS_MbecasTot <- confint(MbecasTot,level=0.90)[,2]
+LS_MbecasENTIDAD <- confint(MbecasENTIDAD,level=0.90)[,2]
+
+LS_MdonativosTot <- confint(MdonativosTot,level=0.90)[,2]
+LS_MdonativosENTIDAD <- confint(MdonativosENTIDAD,level=0.90)[,2]
+
+LS_MremesasTot <- confint(MremesasTot,level=0.90)[,2]
+LS_MremesasENTIDAD <- confint(MremesasENTIDAD,level=0.90)[,2]
+
+LS_Mbene_gobTot <- confint(Mbene_gobTot,level=0.90)[,2]
+LS_Mbene_gobENTIDAD <- confint(Mbene_gobENTIDAD,level=0.90)[,2]
+
+LS_Mtransf_hogTot <- confint(Mtransf_hogTot,level=0.90)[,2]
+LS_Mtransf_hogENTIDAD <- confint(Mtransf_hogENTIDAD,level=0.90)[,2]
+
+LS_Mtrans_instTot <- confint(Mtrans_instTot,level=0.90)[,2]
+LS_Mtrans_instENTIDAD <- confint(Mtrans_instENTIDAD,level=0.90)[,2]
+
+LS_Mestim_alquTot <- confint(Mestim_alquTot,level=0.90)[,2]
+LS_Mestim_alquENTIDAD <- confint(Mestim_alquENTIDAD,level=0.90)[,2]
+
+LS_Motros_ingTot <- confint(Motros_ingTot,level=0.90)[,2]
+LS_Motros_ingENTIDAD <- confint(Motros_ingENTIDAD,level=0.90)[,2]
+
+#############################      Cuadros   
+#este cuadro, lo ?nico que tiene son todas la estimaciones.
+#son 10 filas y 18 columnas.
+c_ENTIDAD_ES <-
+  data.frame(c(ES_Ming_corTot,ES_Ming_corENTIDAD),c(ES_MingtrabTot,ES_MingtrabENTIDAD),c(ES_MtrabajoTot,ES_MtrabajoENTIDAD),c(ES_MnegocioTot,ES_MnegocioENTIDAD)
+             ,c(ES_Motros_trabTot,ES_Motros_trabENTIDAD),c(ES_MrentasTot,ES_MrentasENTIDAD),c(ES_MutilidadTot,ES_MutilidadENTIDAD)
+             ,c(ES_MarrendaTot,ES_MarrendaENTIDAD),c(ES_MtransferTot,ES_MtransferENTIDAD),c(ES_MjubilacionTot,ES_MjubilacionENTIDAD),c(ES_MbecasTot,ES_MbecasENTIDAD),
+             c(ES_MdonativosTot,ES_MdonativosENTIDAD),c(ES_MremesasTot,ES_MremesasENTIDAD),c(ES_Mbene_gobTot,ES_Mbene_gobENTIDAD),c(ES_Mtransf_hogTot,ES_Mtransf_hogENTIDAD)
+             ,c(ES_Mtrans_instTot,ES_Mtrans_instENTIDAD),c(ES_Mestim_alquTot,ES_Mestim_alquENTIDAD),c(ES_Motros_ingTot,ES_Motros_ingENTIDAD))
+##### ERROR ESTANDAR
+c_ENTIDAD_SE <-
+  data.frame(c(SE_Ming_corTot,SE_Ming_corENTIDAD),c(SE_MingtrabTot,SE_MingtrabENTIDAD),c(SE_MtrabajoTot,SE_MtrabajoENTIDAD),c(SE_MnegocioTot,SE_MnegocioENTIDAD)
+             ,c(SE_Motros_trabTot,SE_Motros_trabENTIDAD),c(SE_MrentasTot,SE_MrentasENTIDAD),c(SE_MutilidadTot,SE_MutilidadENTIDAD)
+             ,c(SE_MarrendaTot,SE_MarrendaENTIDAD),c(SE_MtransferTot,SE_MtransferENTIDAD),c(SE_MjubilacionTot,SE_MjubilacionENTIDAD),c(SE_MbecasTot,SE_MbecasENTIDAD),
+             c(SE_MdonativosTot,SE_MdonativosENTIDAD),c(SE_MremesasTot,SE_MremesasENTIDAD),c(SE_Mbene_gobTot,SE_Mbene_gobENTIDAD),c(SE_Mtransf_hogTot,SE_Mtransf_hogENTIDAD),c(SE_Mtrans_instTot,SE_Mtrans_instENTIDAD)
+             ,c(SE_Mestim_alquTot,SE_Mestim_alquENTIDAD),c(SE_Motros_ingTot,SE_Motros_ingENTIDAD))
+
+##### COEFICIENTE DE VARIACION
+c_ENTIDAD_CV <-
+  data.frame(c(CV_Ming_corTot,CV_Ming_corENTIDAD),c(CV_MingtrabTot,CV_MingtrabENTIDAD),c(CV_MtrabajoTot,CV_MtrabajoENTIDAD),c(CV_MnegocioTot,CV_MnegocioENTIDAD)
+             ,c(CV_Motros_trabTot,CV_Motros_trabENTIDAD),c(CV_MrentasTot,CV_MrentasENTIDAD),c(CV_MutilidadTot,CV_MutilidadENTIDAD),
+             c(CV_MarrendaTot,CV_MarrendaENTIDAD),c(CV_MtransferTot,CV_MtransferENTIDAD),c(CV_MjubilacionTot,CV_MjubilacionENTIDAD),c(CV_MbecasTot,CV_MbecasENTIDAD)
+             ,c(CV_MdonativosTot,CV_MdonativosENTIDAD),c(CV_MremesasTot,CV_MremesasENTIDAD),c(CV_Mbene_gobTot,CV_Mbene_gobENTIDAD),c(CV_Mtransf_hogTot,CV_Mtransf_hogENTIDAD),c(CV_Mtrans_instTot,CV_Mtrans_instENTIDAD)
+             ,c(CV_Mestim_alquTot,CV_Mestim_alquENTIDAD),c(CV_Motros_ingTot,CV_Motros_ingENTIDAD))
+
+##### LIMITE INFERIOR AL 90%
+c_ENTIDAD_LI <-
+  data.frame(c(LI_Ming_corTot,LI_Ming_corENTIDAD),c(LI_MingtrabTot,LI_MingtrabENTIDAD),c(LI_MtrabajoTot,LI_MtrabajoENTIDAD),
+             c(LI_MnegocioTot,LI_MnegocioENTIDAD),c(LI_Motros_trabTot,LI_Motros_trabENTIDAD),c(LI_MrentasTot,LI_MrentasENTIDAD),c(LI_MutilidadTot,LI_MutilidadENTIDAD),c(LI_MarrendaTot,LI_MarrendaENTIDAD)
+             ,c(LI_MtransferTot,LI_MtransferENTIDAD),c(LI_MjubilacionTot,LI_MjubilacionENTIDAD),c(LI_MbecasTot,LI_MbecasENTIDAD),c(LI_MdonativosTot,LI_MdonativosENTIDAD)
+             ,c(LI_MremesasTot,LI_MremesasENTIDAD),c(LI_Mbene_gobTot,LI_Mbene_gobENTIDAD),c(LI_Mtransf_hogTot,LI_Mtransf_hogENTIDAD),c(LI_Mtrans_instTot,LI_Mtrans_instENTIDAD)
+             ,c(LI_Mestim_alquTot,LI_Mestim_alquENTIDAD),c(LI_Motros_ingTot,LI_Motros_ingENTIDAD))
+
+### LIMITE SUPERIOR AL 90%
+c_ENTIDAD_LS <-
+  data.frame(c(LS_Ming_corTot,LS_Ming_corENTIDAD),c(LS_MingtrabTot,LS_MingtrabENTIDAD),c(LS_MtrabajoTot,LS_MtrabajoENTIDAD),c(LS_MnegocioTot,LS_MnegocioENTIDAD)
+             ,c(LS_Motros_trabTot,LS_Motros_trabENTIDAD),c(LS_MrentasTot,LS_MrentasENTIDAD),c(LS_MutilidadTot,LS_MutilidadENTIDAD),
+             c(LS_MarrendaTot,LS_MarrendaENTIDAD),c(LS_MtransferTot,LS_MtransferENTIDAD),c(LS_MjubilacionTot,LS_MjubilacionENTIDAD),c(LS_MbecasTot,LS_MbecasENTIDAD),
+             c(LS_MdonativosTot,LS_MdonativosENTIDAD),c(LS_MremesasTot,LS_MremesasENTIDAD),c(LS_Mbene_gobTot,LS_Mbene_gobENTIDAD),c(LS_Mtransf_hogTot,LS_Mtransf_hogENTIDAD),c(LS_Mtrans_instTot,LS_Mtrans_instENTIDAD)
+             ,c(LS_Mestim_alquTot,LS_Mestim_alquENTIDAD),c(LS_Motros_ingTot,LS_Motros_ingENTIDAD))
+
+# se agregan los nombres de las entidades a las filas
+#esta cadena est? bien loca, no?
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(c_ENTIDAD_ES)<-row.names(c_ENTIDAD_SE)<-row.names(c_ENTIDAD_CV)<-row.names(c_ENTIDAD_LI)<-row.names(c_ENTIDAD_LS)<-ENTIDADES
+
+#ahora vamos a ponerle nombre a las columnas
+names(c_ENTIDAD_ES)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_SE)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_CV)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_LI)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_LS)=c("ING COR", "TRABAJO", "SUBORDINADO", "NEGOCIOS","OTROS TRAB", "RENTAS","UTILIDAD", "ARRENDA", "TRANSFER","JUBILACION", "BECAS", "DONATIVOS", "REMESAS", "BENEGOBIERNO", "TRANS HOG", "TRANS INST", "ESTIM ALQU", "OTROS INGRESOS")
+
+#ahora, lo que podemos hacer es mostrar los cuadros en la consola redondeados
+# el comando round, redondea las cifra para mostrar, en el caso del coeficiente de variaci?n redondea a 4 decimales y luego multiplica por cien.
+# Mostramos el resultado en pantalla
+round(c_ENTIDAD_ES)
+round(c_ENTIDAD_SE)
+round(c_ENTIDAD_CV,4)*100
+round(c_ENTIDAD_LI)
+round(c_ENTIDAD_LS)
+
+prueba<-c_ENTIDAD_ES%>%
+  mutate(`ING COR2012`=`ING COR2012`, prueba=TRABAJO2012+RENTAS2012+JUBILACION2012+BECAS2012+DONATIVOS2012+REMESAS2012+BENEGOBIERNO2012+`TRANS HOG2012`+`TRANS INST2012`+`ESTIM ALQU2012`+`OTROS INGRESOS2012`)
+
+all.equal(prueba$`ING COR2012`,prueba$prueba)
+
+########## consumo por ENTIDAD 
+
+
+
+Consumo_por_ENTIDAD <- svyby(~GASTO,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+Consumo_promedio <- svyratio(~GASTO,denominator=~Nhog,mydesign) 
+
+SE_consumo_Tot <- SE (Consumo_promedio)
+SE_consumo_ENTIDAD <- SE (Consumo_por_ENTIDAD)
+
+Consumo_por_ENTIDAD <- Consumo_por_ENTIDAD[[2]] 
+Consumo_promedio <- Consumo_promedio[[1]]
+
+Consumo<-data.frame(c(Consumo_promedio,Consumo_por_ENTIDAD))
+
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(Consumo)<-ENTIDADES
+
+Consumo_SE<-data.frame(c(SE_consumo_Tot,SE_consumo_ENTIDAD))
+row.names(Consumo_SE)<-ENTIDADES
+
+
+
+
+
+write.dbf(Consumo,file = "ESTADOS MEAN Consumo 2012.dbf")
+write.dbf(Consumo_SE,file="ESTADOS MEAN 2012 SE.dbf")
+write.dbf(c_ENTIDAD_ES,file = "ESTADOS MEAN por fuente por estimaciones 2012.dbf")
+write.dbf(c_ENTIDAD_SE,file = "ESTADOS MEAN por fuente por errores standard 2012.dbf")
+write.dbf(c_ENTIDAD_CV,file = "ESTADOS MEAN por fuente por CV 2012.dbf")
+write.dbf(c_ENTIDAD_LI,file = "ESTADOS MEAN por fuente por LI 2012.dbf")
+write.dbf(c_ENTIDAD_ES,file = "ESTADOS MEAN por fuente por LS 2012.dbf")
+
+rm(list = ls())
+
+
+
+################# ingreso por estado bottom 40 ######################
+library(foreign)
+library(survey)
+library(doBy)
+library(reldist)
+library(tidyverse)
+options(survey.lonely.psu="adjust")
+
+#reading the data
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012")
+Conc2012<-read.dbf("Conc_2012.dbf",as.is = T)
+
+
+names(Conc2012)<-c("ENTIDAD","FOLIOVIV","FOLIOHOG","GASTO","TOT_INTEG","INGCOR","INGTRAB","TRABAJO","NEGOCIO","OTROS_TRAB",
+                   "RENTAS","UTILIDAD","ARRENDA","TRANSFER","JUBILA","BECA","DONATIVO","REMESA","BENE_GOB",
+                   "ESP_HOG","ESP_INST","ESTI","OTROS","FACTOR","UPM","EST_DIS","tam_localidad","Small","HOGARINDIG","NOMBRE_ENT",
+                   "DEFLACTORES","Nhog","TAM_DECIL","MAXT","ACUMULA","ACUMULA2","DECIL","Bottom_40")
+
+Conc2012<-Conc2012%>%
+  filter(Bottom_40==1)
+
+
+
+
+mydesign <- svydesign(id=~UPM,strata=~EST_DIS,data=Conc2012,weights=~FACTOR)
+
+#vamos por el ingreso corriente total del pa?s
+# ing_ cor se define como La suma de las variables ingtrab, rentas, transfer, estim_alqu y otros_ing.
+#te sale que el ingreso trimestra promedio en Mexico es de 49,610.
+#notes? que esto no es otra cosa que el ing_cor*factor/34744819
+bottom40_Ming_corTot <- svyratio(~INGCOR,denominator=~Nhog,mydesign) 
+
+#ahora, vamos a hacer lo mismo por ENTIDAD
+#aqu? cmabia la funci?n a svyby, en by va el ENTIDAD que creamos.
+#y al final va la funci?n que queremos
+bottom40_Ming_corENTIDAD <- svyby(~INGCOR,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+
+#     Trabajo
+#
+#El trabajo se divide en tres clasificaciones: subordinado, independiente y otros.
+### ingreso del trabajo total###
+bottom40_MingtrabTot <- svyratio(~INGTRAB,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MingtrabENTIDAD <- svyby(~INGTRAB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo subordinado
+bottom40_MtrabajoTot <- svyratio(~TRABAJO,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MtrabajoENTIDAD <- svyby(~TRABAJO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo independiente
+bottom40_MnegocioTot <- svyratio(~NEGOCIO,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MnegocioENTIDAD <- svyby(~NEGOCIO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso de otros trabajos
+bottom40_Motros_trabTot <- svyratio(~OTROS_TRAB,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Motros_trabENTIDAD<- svyby(~OTROS_TRAB,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio) # por ENTIDAD
+
+
+###################################        Rentas de la propiedad 
+
+#la renta de la propiedad se divide en: ingresos de sociedades y arrendamientos.
+
+#ingresos totales por renta de la porpiedad
+bottom40_MrentasTot <- svyratio(~RENTAS,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MrentasENTIDAD <- svyby(~RENTAS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #Por ENTIDAD
+###### ingresos de sociedades
+bottom40_MutilidadTot <- svyratio(~UTILIDAD,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MutilidadENTIDAD <- svyby(~UTILIDAD,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### arrendamiento
+bottom40_MarrendaTot <- svyratio(~ARRENDA,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MarrendaENTIDAD <- svyby(~ARRENDA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # Por ENTIDAD
+
+
+###################################        Transferencias   
+
+#las transferencias totales se definen como la suma de jubilacion, becas, donativos, remesas, bene_gob, transf_hog y trans_inst.
+
+bottom40_MtransferTot <- svyratio(~TRANSFER,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MtransferENTIDAD <- svyby(~TRANSFER,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### jubilacion se define como Jubilaciones, pensiones e indemnizaciones por accidente de trabajo despido y retiro voluntario.
+#En el cuestionario solo se les pregunta si recibi? jubilaciones. As? que puede ser p?blicas o privadas.
+
+bottom40_MjubilacionTot <- svyratio(~JUBILA,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MjubilacionENTIDAD <- svyby(~JUBILA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### becas que pueden ser, de nuevo, p?blicas privadas. 
+bottom40_MbecasTot <- svyratio(~BECA,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MbecasENTIDAD <- svyby(~BECA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### donativos que tambi?n pueden ser p?blicos o privados.
+bottom40_MdonativosTot <- svyratio(~DONATIVO,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MdonativosENTIDAD <- svyby(~DONATIVO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### remesas se definen como ingresos provenientes d eotros paises. As? de manera gen?rica.
+bottom40_MremesasTot <- svyratio(~REMESA,denominator=~Nhog,mydesign) # Total promedio
+bottom40_MremesasENTIDAD <- svyby(~REMESA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### bene_gob:  aqu? estna los programas p?blicos. Prospera, procampo, 65 y m?s, adultos mayores, sin hambre, empleo tempora y Otros.
+bottom40_Mbene_gobTot <- svyratio(~BENE_GOB,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Mbene_gobENTIDAD <- svyby(~BENE_GOB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### transf_hog:  Esto es lo que transfiere otro hogar.
+bottom40_Mtransf_hogTot <- svyratio(~ESP_HOG,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Mtransf_hogENTIDAD <- svyby(~ESP_HOG,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #ENTIDAD
+
+###### trans_inst: puede venir de institucione sp?blicas o privadas.
+bottom40_Mtrans_instTot <- svyratio(~ESP_INST,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Mtrans_instENTIDAD <- svyby(~ESP_INST,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### estim_alqu ### Aparentemente se le pregunta al entrevistado cu?nto constar?a la renta del lugar donde vive.
+bottom40_Mestim_alquTot <- svyratio(~ESTI,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Mestim_alquENTIDAD <- svyby(~ESTI,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### otros_ing ### es literalmente ?algo m?s?
+bottom40_Motros_ingTot <- svyratio(~OTROS,denominator=~Nhog,mydesign) # Total promedio
+bottom40_Motros_ingENTIDAD <- svyby(~OTROS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+######################################### Estimaciones 
+
+ES_Ming_corTot <- bottom40_Ming_corTot[[1]] #lo que estoy haciendo aqu? es extraer el valor de la primera columa que corresponde al c?lculo.
+ES_Ming_corENTIDAD <- bottom40_Ming_corENTIDAD[[2]] #En el caso de las entidades, los c?lculos quedaron en la segunda columna
+
+ES_MingtrabTot <- bottom40_MingtrabTot[[1]]
+ES_MingtrabENTIDAD <- bottom40_MingtrabENTIDAD[[2]]
+
+ES_MtrabajoTot <- bottom40_MtrabajoTot[[1]]
+ES_MtrabajoENTIDAD <- bottom40_MtrabajoENTIDAD[[2]]
+
+ES_MnegocioTot <- bottom40_MnegocioTot[[1]]
+ES_MnegocioENTIDAD <- bottom40_MnegocioENTIDAD[[2]]
+
+ES_Motros_trabTot <- bottom40_Motros_trabTot [[1]]
+ES_Motros_trabENTIDAD <- bottom40_Motros_trabENTIDAD [[2]]
+
+ES_MrentasTot <- bottom40_MrentasTot [[1]]
+ES_MrentasENTIDAD <- bottom40_MrentasENTIDAD [[2]]
+
+ES_MutilidadTot <- bottom40_MutilidadTot [[1]]
+ES_MutilidadENTIDAD <- bottom40_MutilidadENTIDAD [[2]]
+
+ES_MarrendaTot <- bottom40_MarrendaTot [[1]]
+ES_MarrendaENTIDAD <- bottom40_MarrendaENTIDAD [[2]]
+
+ES_MtransferTot <- bottom40_MtransferTot[[1]]
+ES_MtransferENTIDAD <- bottom40_MtransferENTIDAD[[2]]
+
+ES_MjubilacionTot <- bottom40_MjubilacionTot [[1]]
+ES_MjubilacionENTIDAD <- bottom40_MjubilacionENTIDAD [[2]]
+
+ES_MbecasTot <- bottom40_MbecasTot [[1]]
+ES_MbecasENTIDAD <- bottom40_MbecasENTIDAD [[2]]
+
+ES_MdonativosTot <- bottom40_MdonativosTot[[1]]
+ES_MdonativosENTIDAD <- bottom40_MdonativosENTIDAD[[2]]
+
+ES_MremesasTot <- bottom40_MremesasTot[[1]]
+ES_MremesasENTIDAD <- bottom40_MremesasENTIDAD[[2]]
+
+ES_Mbene_gobTot <- bottom40_Mbene_gobTot [[1]]
+ES_Mbene_gobENTIDAD <- bottom40_Mbene_gobENTIDAD [[2]]
+
+ES_Mtransf_hogTot <- bottom40_Mtransf_hogTot [[1]]
+ES_Mtransf_hogENTIDAD <- bottom40_Mtransf_hogENTIDAD [[2]]
+
+ES_Mtrans_instTot <- bottom40_Mtrans_instTot[[1]]
+ES_Mtrans_instENTIDAD <- bottom40_Mtrans_instENTIDAD[[2]]
+
+ES_Mestim_alquTot <- bottom40_Mestim_alquTot [[1]]
+ES_Mestim_alquENTIDAD <- bottom40_Mestim_alquENTIDAD [[2]]
+
+ES_Motros_ingTot <- bottom40_Motros_ingTot [[1]]
+ES_Motros_ingENTIDAD <- bottom40_Motros_ingENTIDAD [[2]]
+
+########## Error Est?ndar 
+SE_Ming_corTot <- SE (bottom40_Ming_corTot)
+SE_Ming_corENTIDAD <- SE (bottom40_Ming_corENTIDAD)
+
+SE_MingtrabTot <- SE (bottom40_MingtrabTot)
+SE_MingtrabENTIDAD <- SE (bottom40_MingtrabENTIDAD)
+
+SE_MtrabajoTot <- SE (bottom40_MtrabajoTot)
+SE_MtrabajoENTIDAD <- SE (bottom40_MtrabajoENTIDAD)
+
+SE_MnegocioTot <- SE (bottom40_MnegocioTot)
+SE_MnegocioENTIDAD <- SE (bottom40_MnegocioENTIDAD)
+
+SE_Motros_trabTot <- SE (bottom40_Motros_trabTot)
+SE_Motros_trabENTIDAD <- SE (bottom40_Motros_trabENTIDAD)
+
+SE_MrentasTot <- SE (bottom40_MrentasTot)
+SE_MrentasENTIDAD <- SE (bottom40_MrentasENTIDAD)
+
+SE_MutilidadTot <- SE (bottom40_MutilidadTot)
+SE_MutilidadENTIDAD <- SE (bottom40_MutilidadENTIDAD)
+
+SE_MarrendaTot <- SE (bottom40_MarrendaTot)
+SE_MarrendaENTIDAD <- SE (bottom40_MarrendaENTIDAD)
+
+SE_MtransferTot <- SE (bottom40_MtransferTot)
+SE_MtransferENTIDAD <- SE (bottom40_MtransferENTIDAD)
+
+SE_MjubilacionTot <- SE (bottom40_MjubilacionTot)
+SE_MjubilacionENTIDAD <- SE (bottom40_MjubilacionENTIDAD)
+
+SE_MbecasTot <- SE (bottom40_MbecasTot)
+SE_MbecasENTIDAD <- SE (bottom40_MbecasENTIDAD)
+
+SE_MdonativosTot <- SE (bottom40_MdonativosTot)
+SE_MdonativosENTIDAD <- SE (bottom40_MdonativosENTIDAD)
+
+SE_MremesasTot <- SE (bottom40_MremesasTot)
+SE_MremesasENTIDAD <- SE (bottom40_MremesasENTIDAD)
+
+SE_Mbene_gobTot <- SE (bottom40_Mbene_gobTot)
+SE_Mbene_gobENTIDAD <- SE (bottom40_Mbene_gobENTIDAD)
+
+SE_Mtransf_hogTot <- SE (bottom40_Mtransf_hogTot)
+SE_Mtransf_hogENTIDAD <- SE (bottom40_Mtransf_hogENTIDAD)
+
+SE_Mtrans_instTot <- SE (bottom40_Mtrans_instTot)
+SE_Mtrans_instENTIDAD <- SE (bottom40_Mtrans_instENTIDAD)
+
+SE_Mestim_alquTot <- SE (bottom40_Mestim_alquTot)
+SE_Mestim_alquENTIDAD <- SE (bottom40_Mestim_alquENTIDAD)
+
+SE_Motros_ingTot <- SE (bottom40_Motros_ingTot)
+SE_Motros_ingENTIDAD <- SE (bottom40_Motros_ingENTIDAD)
+
+
+#############################      Cuadros   
+#este cuadro, lo ?nico que tiene son todas la estimaciones.
+#son 10 filas y 18 columnas.
+c_ENTIDAD_ES <-
+  data.frame(c(ES_Ming_corTot,ES_Ming_corENTIDAD),c(ES_MingtrabTot,ES_MingtrabENTIDAD),c(ES_MtrabajoTot,ES_MtrabajoENTIDAD),c(ES_MnegocioTot,ES_MnegocioENTIDAD)
+             ,c(ES_Motros_trabTot,ES_Motros_trabENTIDAD),c(ES_MrentasTot,ES_MrentasENTIDAD),c(ES_MutilidadTot,ES_MutilidadENTIDAD)
+             ,c(ES_MarrendaTot,ES_MarrendaENTIDAD),c(ES_MtransferTot,ES_MtransferENTIDAD),c(ES_MjubilacionTot,ES_MjubilacionENTIDAD),c(ES_MbecasTot,ES_MbecasENTIDAD),
+             c(ES_MdonativosTot,ES_MdonativosENTIDAD),c(ES_MremesasTot,ES_MremesasENTIDAD),c(ES_Mbene_gobTot,ES_Mbene_gobENTIDAD),c(ES_Mtransf_hogTot,ES_Mtransf_hogENTIDAD)
+             ,c(ES_Mtrans_instTot,ES_Mtrans_instENTIDAD),c(ES_Mestim_alquTot,ES_Mestim_alquENTIDAD),c(ES_Motros_ingTot,ES_Motros_ingENTIDAD))
+##### ERROR ESTANDAR
+c_ENTIDAD_SE <-
+  data.frame(c(SE_Ming_corTot,SE_Ming_corENTIDAD),c(SE_MingtrabTot,SE_MingtrabENTIDAD),c(SE_MtrabajoTot,SE_MtrabajoENTIDAD),c(SE_MnegocioTot,SE_MnegocioENTIDAD)
+             ,c(SE_Motros_trabTot,SE_Motros_trabENTIDAD),c(SE_MrentasTot,SE_MrentasENTIDAD),c(SE_MutilidadTot,SE_MutilidadENTIDAD)
+             ,c(SE_MarrendaTot,SE_MarrendaENTIDAD),c(SE_MtransferTot,SE_MtransferENTIDAD),c(SE_MjubilacionTot,SE_MjubilacionENTIDAD),c(SE_MbecasTot,SE_MbecasENTIDAD),
+             c(SE_MdonativosTot,SE_MdonativosENTIDAD),c(SE_MremesasTot,SE_MremesasENTIDAD),c(SE_Mbene_gobTot,SE_Mbene_gobENTIDAD),c(SE_Mtransf_hogTot,SE_Mtransf_hogENTIDAD),c(SE_Mtrans_instTot,SE_Mtrans_instENTIDAD)
+             ,c(SE_Mestim_alquTot,SE_Mestim_alquENTIDAD),c(SE_Motros_ingTot,SE_Motros_ingENTIDAD))
+
+
+
+# se agregan los nombres de las entidades a las filas
+#esta cadena est? bien loca, no?
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(c_ENTIDAD_ES)<-row.names(c_ENTIDAD_SE)<-ENTIDADES
+
+#ahora vamos a ponerle nombre a las columnas
+names(c_ENTIDAD_ES)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_SE)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+
+#ahora, lo que podemos hacer es mostrar los cuadros en la consola redondeados
+# el comando round, redondea las cifra para mostrar, en el caso del coeficiente de variaci?n redondea a 4 decimales y luego multiplica por cien.
+# Mostramos el resultado en pantalla
+round(c_ENTIDAD_ES)
+round(c_ENTIDAD_SE)
+
+
+prueba<-c_ENTIDAD_ES%>%
+  mutate(`ING COR2012`=`ING COR2012`, prueba=TRABAJO2012+RENTAS2012+JUBILACION2012+BECAS2012+DONATIVOS2012+REMESAS2012+BENEGOBIERNO2012+`TRANS HOG2012`+`TRANS INST2012`+`ESTIM ALQU2012`+`OTROS INGRESOS2012`)
+
+all.equal(prueba$`ING COR2012`,prueba$prueba)
+
+########## consumo por ENTIDAD 
+
+
+
+Consumo_por_ENTIDAD <- svyby(~GASTO,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+Consumo_promedio <- svyratio(~GASTO,denominator=~Nhog,mydesign) 
+
+SE_consumo_Tot <- SE (Consumo_promedio)
+SE_consumo_ENTIDAD <- SE (Consumo_por_ENTIDAD)
+
+Consumo_por_ENTIDAD <- Consumo_por_ENTIDAD[[2]] 
+Consumo_promedio <- Consumo_promedio[[1]]
+
+Consumo<-data.frame(c(Consumo_promedio,Consumo_por_ENTIDAD))
+
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(Consumo)<-ENTIDADES
+
+Consumo_SE<-data.frame(c(SE_consumo_Tot,SE_consumo_ENTIDAD))
+row.names(Consumo_SE)<-ENTIDADES
+
+
+
+
+
+write.dbf(Consumo,file = "ESTADOS Consumo bottom 40 2012.dbf")
+write.dbf(Consumo_SE,file="ESTADOS Consumo bottom 40 2012 SE.dbf")
+write.dbf(c_ENTIDAD_ES,file = "ESTADOS bottom 40 por fuente por ENTIDAD estimaciones 2012.dbf")
+write.dbf(c_ENTIDAD_SE,file = "ESTADOS bottom 40 fuente por ENTIDAD errores standard 2012.dbf")
+
+rm(list = ls())
+
+
+
+################# ingreso por estado upper 60 ######################
+library(foreign)
+library(survey)
+library(doBy)
+library(reldist)
+library(tidyverse)
+options(survey.lonely.psu="adjust")
+
+#reading the data
+setwd("C:/Users/Erick/onedrive/GIC/GITHUB2018/GIC/ENIGH_2012/ENIGH2012")
+Conc2012<-read.dbf("Conc_2012.dbf",as.is = T)
+
+
+names(Conc2012)<-c("ENTIDAD","FOLIOVIV","FOLIOHOG","GASTO","TOT_INTEG","INGCOR","INGTRAB","TRABAJO","NEGOCIO","OTROS_TRAB",
+                   "RENTAS","UTILIDAD","ARRENDA","TRANSFER","JUBILA","BECA","DONATIVO","REMESA","BENE_GOB",
+                   "ESP_HOG","ESP_INST","ESTI","OTROS","FACTOR","UPM","EST_DIS","tam_localidad","Small","HOGARINDIG","NOMBRE_ENT",
+                   "DEFLACTORES","Nhog","TAM_DECIL","MAXT","ACUMULA","ACUMULA2","DECIL","Bottom_40")
+
+Conc2012<-Conc2012%>%
+  filter(Bottom_40==0)
+
+
+
+
+mydesign <- svydesign(id=~UPM,strata=~EST_DIS,data=Conc2012,weights=~FACTOR)
+
+#vamos por el ingreso corriente total del pa?s
+# ing_ cor se define como La suma de las variables ingtrab, rentas, transfer, estim_alqu y otros_ing.
+#te sale que el ingreso trimestra promedio en Mexico es de 49,610.
+#notes? que esto no es otra cosa que el ing_cor*factor/34744819
+upper60_Ming_corTot <- svyratio(~INGCOR,denominator=~Nhog,mydesign) 
+
+#ahora, vamos a hacer lo mismo por ENTIDAD
+#aqu? cmabia la funci?n a svyby, en by va el ENTIDAD que creamos.
+#y al final va la funci?n que queremos
+upper60_Ming_corENTIDAD <- svyby(~INGCOR,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+
+#     Trabajo
+#
+#El trabajo se divide en tres clasificaciones: subordinado, independiente y otros.
+### ingreso del trabajo total###
+upper60_MingtrabTot <- svyratio(~INGTRAB,denominator=~Nhog,mydesign) # Total promedio
+upper60_MingtrabENTIDAD <- svyby(~INGTRAB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo subordinado
+upper60_MtrabajoTot <- svyratio(~TRABAJO,denominator=~Nhog,mydesign) # Total promedio
+upper60_MtrabajoENTIDAD <- svyby(~TRABAJO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso del trabajo independiente
+upper60_MnegocioTot <- svyratio(~NEGOCIO,denominator=~Nhog,mydesign) # Total promedio
+upper60_MnegocioENTIDAD <- svyby(~NEGOCIO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### ingreso de otros trabajos
+upper60_Motros_trabTot <- svyratio(~OTROS_TRAB,denominator=~Nhog,mydesign) # Total promedio
+upper60_Motros_trabENTIDAD<- svyby(~OTROS_TRAB,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio) # por ENTIDAD
+
+
+###################################        Rentas de la propiedad 
+
+#la renta de la propiedad se divide en: ingresos de sociedades y arrendamientos.
+
+#ingresos totales por renta de la porpiedad
+upper60_MrentasTot <- svyratio(~RENTAS,denominator=~Nhog,mydesign) # Total promedio
+upper60_MrentasENTIDAD <- svyby(~RENTAS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #Por ENTIDAD
+###### ingresos de sociedades
+upper60_MutilidadTot <- svyratio(~UTILIDAD,denominator=~Nhog,mydesign) # Total promedio
+upper60_MutilidadENTIDAD <- svyby(~UTILIDAD,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # por ENTIDAD
+###### arrendamiento
+upper60_MarrendaTot <- svyratio(~ARRENDA,denominator=~Nhog,mydesign) # Total promedio
+upper60_MarrendaENTIDAD <- svyby(~ARRENDA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # Por ENTIDAD
+
+
+###################################        Transferencias   
+
+#las transferencias totales se definen como la suma de jubilacion, becas, donativos, remesas, bene_gob, transf_hog y trans_inst.
+
+upper60_MtransferTot <- svyratio(~TRANSFER,denominator=~Nhog,mydesign) # Total promedio
+upper60_MtransferENTIDAD <- svyby(~TRANSFER,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### jubilacion se define como Jubilaciones, pensiones e indemnizaciones por accidente de trabajo despido y retiro voluntario.
+#En el cuestionario solo se les pregunta si recibi? jubilaciones. As? que puede ser p?blicas o privadas.
+
+upper60_MjubilacionTot <- svyratio(~JUBILA,denominator=~Nhog,mydesign) # Total promedio
+upper60_MjubilacionENTIDAD <- svyby(~JUBILA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### becas que pueden ser, de nuevo, p?blicas privadas. 
+upper60_MbecasTot <- svyratio(~BECA,denominator=~Nhog,mydesign) # Total promedio
+upper60_MbecasENTIDAD <- svyby(~BECA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### donativos que tambi?n pueden ser p?blicos o privados.
+upper60_MdonativosTot <- svyratio(~DONATIVO,denominator=~Nhog,mydesign) # Total promedio
+upper60_MdonativosENTIDAD <- svyby(~DONATIVO,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### remesas se definen como ingresos provenientes d eotros paises. As? de manera gen?rica.
+upper60_MremesasTot <- svyratio(~REMESA,denominator=~Nhog,mydesign) # Total promedio
+upper60_MremesasENTIDAD <- svyby(~REMESA,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### bene_gob:  aqu? estna los programas p?blicos. Prospera, procampo, 65 y m?s, adultos mayores, sin hambre, empleo tempora y Otros.
+upper60_Mbene_gobTot <- svyratio(~BENE_GOB,denominator=~Nhog,mydesign) # Total promedio
+upper60_Mbene_gobENTIDAD <- svyby(~BENE_GOB,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+###### transf_hog:  Esto es lo que transfiere otro hogar.
+upper60_Mtransf_hogTot <- svyratio(~ESP_HOG,denominator=~Nhog,mydesign) # Total promedio
+upper60_Mtransf_hogENTIDAD <- svyby(~ESP_HOG,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) #ENTIDAD
+
+###### trans_inst: puede venir de institucione sp?blicas o privadas.
+upper60_Mtrans_instTot <- svyratio(~ESP_INST,denominator=~Nhog,mydesign) # Total promedio
+upper60_Mtrans_instENTIDAD <- svyby(~ESP_INST,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### estim_alqu ### Aparentemente se le pregunta al entrevistado cu?nto constar?a la renta del lugar donde vive.
+upper60_Mestim_alquTot <- svyratio(~ESTI,denominator=~Nhog,mydesign) # Total promedio
+upper60_Mestim_alquENTIDAD <- svyby(~ESTI,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+### otros_ing ### es literalmente ?algo m?s?
+upper60_Motros_ingTot <- svyratio(~OTROS,denominator=~Nhog,mydesign) # Total promedio
+upper60_Motros_ingENTIDAD <- svyby(~OTROS,denominator=~Nhog,by=~ENTIDAD ,mydesign,svyratio) # ENTIDAD
+
+
+######################################### Estimaciones 
+
+ES_Ming_corTot <- upper60_Ming_corTot[[1]] #lo que estoy haciendo aqu? es extraer el valor de la primera columa que corresponde al c?lculo.
+ES_Ming_corENTIDAD <- upper60_Ming_corENTIDAD[[2]] #En el caso de las entidades, los c?lculos quedaron en la segunda columna
+
+ES_MingtrabTot <- upper60_MingtrabTot[[1]]
+ES_MingtrabENTIDAD <- upper60_MingtrabENTIDAD[[2]]
+
+ES_MtrabajoTot <- upper60_MtrabajoTot[[1]]
+ES_MtrabajoENTIDAD <- upper60_MtrabajoENTIDAD[[2]]
+
+ES_MnegocioTot <- upper60_MnegocioTot[[1]]
+ES_MnegocioENTIDAD <- upper60_MnegocioENTIDAD[[2]]
+
+ES_Motros_trabTot <- upper60_Motros_trabTot [[1]]
+ES_Motros_trabENTIDAD <- upper60_Motros_trabENTIDAD [[2]]
+
+ES_MrentasTot <- upper60_MrentasTot [[1]]
+ES_MrentasENTIDAD <- upper60_MrentasENTIDAD [[2]]
+
+ES_MutilidadTot <- upper60_MutilidadTot [[1]]
+ES_MutilidadENTIDAD <- upper60_MutilidadENTIDAD [[2]]
+
+ES_MarrendaTot <- upper60_MarrendaTot [[1]]
+ES_MarrendaENTIDAD <- upper60_MarrendaENTIDAD [[2]]
+
+ES_MtransferTot <- upper60_MtransferTot[[1]]
+ES_MtransferENTIDAD <- upper60_MtransferENTIDAD[[2]]
+
+ES_MjubilacionTot <- upper60_MjubilacionTot [[1]]
+ES_MjubilacionENTIDAD <- upper60_MjubilacionENTIDAD [[2]]
+
+ES_MbecasTot <- upper60_MbecasTot [[1]]
+ES_MbecasENTIDAD <- upper60_MbecasENTIDAD [[2]]
+
+ES_MdonativosTot <- upper60_MdonativosTot[[1]]
+ES_MdonativosENTIDAD <- upper60_MdonativosENTIDAD[[2]]
+
+ES_MremesasTot <- upper60_MremesasTot[[1]]
+ES_MremesasENTIDAD <- upper60_MremesasENTIDAD[[2]]
+
+ES_Mbene_gobTot <- upper60_Mbene_gobTot [[1]]
+ES_Mbene_gobENTIDAD <- upper60_Mbene_gobENTIDAD [[2]]
+
+ES_Mtransf_hogTot <- upper60_Mtransf_hogTot [[1]]
+ES_Mtransf_hogENTIDAD <- upper60_Mtransf_hogENTIDAD [[2]]
+
+ES_Mtrans_instTot <- upper60_Mtrans_instTot[[1]]
+ES_Mtrans_instENTIDAD <- upper60_Mtrans_instENTIDAD[[2]]
+
+ES_Mestim_alquTot <- upper60_Mestim_alquTot [[1]]
+ES_Mestim_alquENTIDAD <- upper60_Mestim_alquENTIDAD [[2]]
+
+ES_Motros_ingTot <- upper60_Motros_ingTot [[1]]
+ES_Motros_ingENTIDAD <- upper60_Motros_ingENTIDAD [[2]]
+
+########## Error Est?ndar 
+SE_Ming_corTot <- SE (upper60_Ming_corTot)
+SE_Ming_corENTIDAD <- SE (upper60_Ming_corENTIDAD)
+
+SE_MingtrabTot <- SE (upper60_MingtrabTot)
+SE_MingtrabENTIDAD <- SE (upper60_MingtrabENTIDAD)
+
+SE_MtrabajoTot <- SE (upper60_MtrabajoTot)
+SE_MtrabajoENTIDAD <- SE (upper60_MtrabajoENTIDAD)
+
+SE_MnegocioTot <- SE (upper60_MnegocioTot)
+SE_MnegocioENTIDAD <- SE (upper60_MnegocioENTIDAD)
+
+SE_Motros_trabTot <- SE (upper60_Motros_trabTot)
+SE_Motros_trabENTIDAD <- SE (upper60_Motros_trabENTIDAD)
+
+SE_MrentasTot <- SE (upper60_MrentasTot)
+SE_MrentasENTIDAD <- SE (upper60_MrentasENTIDAD)
+
+SE_MutilidadTot <- SE (upper60_MutilidadTot)
+SE_MutilidadENTIDAD <- SE (upper60_MutilidadENTIDAD)
+
+SE_MarrendaTot <- SE (upper60_MarrendaTot)
+SE_MarrendaENTIDAD <- SE (upper60_MarrendaENTIDAD)
+
+SE_MtransferTot <- SE (upper60_MtransferTot)
+SE_MtransferENTIDAD <- SE (upper60_MtransferENTIDAD)
+
+SE_MjubilacionTot <- SE (upper60_MjubilacionTot)
+SE_MjubilacionENTIDAD <- SE (upper60_MjubilacionENTIDAD)
+
+SE_MbecasTot <- SE (upper60_MbecasTot)
+SE_MbecasENTIDAD <- SE (upper60_MbecasENTIDAD)
+
+SE_MdonativosTot <- SE (upper60_MdonativosTot)
+SE_MdonativosENTIDAD <- SE (upper60_MdonativosENTIDAD)
+
+SE_MremesasTot <- SE (upper60_MremesasTot)
+SE_MremesasENTIDAD <- SE (upper60_MremesasENTIDAD)
+
+SE_Mbene_gobTot <- SE (upper60_Mbene_gobTot)
+SE_Mbene_gobENTIDAD <- SE (upper60_Mbene_gobENTIDAD)
+
+SE_Mtransf_hogTot <- SE (upper60_Mtransf_hogTot)
+SE_Mtransf_hogENTIDAD <- SE (upper60_Mtransf_hogENTIDAD)
+
+SE_Mtrans_instTot <- SE (upper60_Mtrans_instTot)
+SE_Mtrans_instENTIDAD <- SE (upper60_Mtrans_instENTIDAD)
+
+SE_Mestim_alquTot <- SE (upper60_Mestim_alquTot)
+SE_Mestim_alquENTIDAD <- SE (upper60_Mestim_alquENTIDAD)
+
+SE_Motros_ingTot <- SE (upper60_Motros_ingTot)
+SE_Motros_ingENTIDAD <- SE (upper60_Motros_ingENTIDAD)
+
+
+#############################      Cuadros   
+#este cuadro, lo ?nico que tiene son todas la estimaciones.
+#son 10 filas y 18 columnas.
+c_ENTIDAD_ES <-
+  data.frame(c(ES_Ming_corTot,ES_Ming_corENTIDAD),c(ES_MingtrabTot,ES_MingtrabENTIDAD),c(ES_MtrabajoTot,ES_MtrabajoENTIDAD),c(ES_MnegocioTot,ES_MnegocioENTIDAD)
+             ,c(ES_Motros_trabTot,ES_Motros_trabENTIDAD),c(ES_MrentasTot,ES_MrentasENTIDAD),c(ES_MutilidadTot,ES_MutilidadENTIDAD)
+             ,c(ES_MarrendaTot,ES_MarrendaENTIDAD),c(ES_MtransferTot,ES_MtransferENTIDAD),c(ES_MjubilacionTot,ES_MjubilacionENTIDAD),c(ES_MbecasTot,ES_MbecasENTIDAD),
+             c(ES_MdonativosTot,ES_MdonativosENTIDAD),c(ES_MremesasTot,ES_MremesasENTIDAD),c(ES_Mbene_gobTot,ES_Mbene_gobENTIDAD),c(ES_Mtransf_hogTot,ES_Mtransf_hogENTIDAD)
+             ,c(ES_Mtrans_instTot,ES_Mtrans_instENTIDAD),c(ES_Mestim_alquTot,ES_Mestim_alquENTIDAD),c(ES_Motros_ingTot,ES_Motros_ingENTIDAD))
+##### ERROR ESTANDAR
+c_ENTIDAD_SE <-
+  data.frame(c(SE_Ming_corTot,SE_Ming_corENTIDAD),c(SE_MingtrabTot,SE_MingtrabENTIDAD),c(SE_MtrabajoTot,SE_MtrabajoENTIDAD),c(SE_MnegocioTot,SE_MnegocioENTIDAD)
+             ,c(SE_Motros_trabTot,SE_Motros_trabENTIDAD),c(SE_MrentasTot,SE_MrentasENTIDAD),c(SE_MutilidadTot,SE_MutilidadENTIDAD)
+             ,c(SE_MarrendaTot,SE_MarrendaENTIDAD),c(SE_MtransferTot,SE_MtransferENTIDAD),c(SE_MjubilacionTot,SE_MjubilacionENTIDAD),c(SE_MbecasTot,SE_MbecasENTIDAD),
+             c(SE_MdonativosTot,SE_MdonativosENTIDAD),c(SE_MremesasTot,SE_MremesasENTIDAD),c(SE_Mbene_gobTot,SE_Mbene_gobENTIDAD),c(SE_Mtransf_hogTot,SE_Mtransf_hogENTIDAD),c(SE_Mtrans_instTot,SE_Mtrans_instENTIDAD)
+             ,c(SE_Mestim_alquTot,SE_Mestim_alquENTIDAD),c(SE_Motros_ingTot,SE_Motros_ingENTIDAD))
+
+
+
+# se agregan los nombres de las entidades a las filas
+#esta cadena est? bien loca, no?
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(c_ENTIDAD_ES)<-row.names(c_ENTIDAD_SE)<-ENTIDADES
+
+#ahora vamos a ponerle nombre a las columnas
+names(c_ENTIDAD_ES)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+names(c_ENTIDAD_SE)=c("ING COR2012", "TRABAJO2012", "SUBORDINADO2012", "NEGOCIOS2012","OTROS TRAB2012", "RENTAS2012","UTILIDAD2012", "ARRENDA2012", "TRANSFER2012","JUBILACION2012", "BECAS2012", "DONATIVOS2012", "REMESAS2012", "BENEGOBIERNO2012", "TRANS HOG2012", "TRANS INST2012", "ESTIM ALQU2012", "OTROS INGRESOS2012")
+
+
+#ahora, lo que podemos hacer es mostrar los cuadros en la consola redondeados
+# el comando round, redondea las cifra para mostrar, en el caso del coeficiente de variaci?n redondea a 4 decimales y luego multiplica por cien.
+# Mostramos el resultado en pantalla
+round(c_ENTIDAD_ES)
+round(c_ENTIDAD_SE)
+
+
+prueba<-c_ENTIDAD_ES%>%
+  mutate(`ING COR2012`=`ING COR2012`, prueba=TRABAJO2012+RENTAS2012+JUBILACION2012+BECAS2012+DONATIVOS2012+REMESAS2012+BENEGOBIERNO2012+`TRANS HOG2012`+`TRANS INST2012`+`ESTIM ALQU2012`+`OTROS INGRESOS2012`)
+
+all.equal(prueba$`ING COR2012`,prueba$prueba)
+
+########## consumo por ENTIDAD 
+
+
+
+Consumo_por_ENTIDAD <- svyby(~GASTO,denominator=~Nhog,by=~ENTIDAD,mydesign,svyratio)
+
+Consumo_promedio <- svyratio(~GASTO,denominator=~Nhog,mydesign) 
+
+SE_consumo_Tot <- SE (Consumo_promedio)
+SE_consumo_ENTIDAD <- SE (Consumo_por_ENTIDAD)
+
+Consumo_por_ENTIDAD <- Consumo_por_ENTIDAD[[2]] 
+Consumo_promedio <- Consumo_promedio[[1]]
+
+Consumo<-data.frame(c(Consumo_promedio,Consumo_por_ENTIDAD))
+
+ENTIDADES<-c(entidades<-c("MExico","Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+                          "Colima","Chiapas","Chihuahua","Ciudad de Mexico","Durango","Guanajuato","Guerrero","Hidalgo",
+                          "Jalisco","Mexico","Michoaca¡n de Ocampo","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla",
+                          "Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz de Ignacio de la Llave","Yucatan","Zacatecas"))
+
+row.names(Consumo)<-ENTIDADES
+
+Consumo_SE<-data.frame(c(SE_consumo_Tot,SE_consumo_ENTIDAD))
+row.names(Consumo_SE)<-ENTIDADES
+
+
+
+
+
+write.dbf(Consumo,file = "ESTADOS Consumo upper 60 2012.dbf")
+write.dbf(Consumo_SE,file="ESTADOS Consumo upper 60 2012 SE.dbf")
+write.dbf(c_ENTIDAD_ES,file = "ESTADOS upper 60 por fuente por ENTIDAD estimaciones 2012.dbf")
+write.dbf(c_ENTIDAD_SE,file = "ESTADOS upper 60 fuente por ENTIDAD errores standard 2012.dbf")
+
+rm(list = ls())
+
+
